@@ -58,7 +58,7 @@ export default function Home() {
     socketRef.current?.disconnect();
 
     const socket = io(window.location.origin, {
-  path: '/socket.io/',
+  path: '/socket.io',
   transports: ['polling', 'websocket'],
   upgrade: true,
   reconnection: true,

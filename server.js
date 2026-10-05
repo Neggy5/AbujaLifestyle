@@ -22,13 +22,14 @@ async function main() {
   await app.prepare();
 
   /*
-   * Create the HTTP server first.
-   * Socket.IO attaches its Engine.IO handler
-   * directly to this server.
+   * Create the HTTP server BEFORE Socket.IO.
+   * Socket.IO will attach its Engine.IO handler
+   * to this server instance.
    */
   const httpServer = http.createServer();
 
   const io = new Server(httpServer, {
+    // Path without trailing slash
     path: '/socket.io',
     transports: ['polling', 'websocket'],
 
@@ -44,22 +45,39 @@ async function main() {
   });
 
   /*
-   * IMPORTANT:
+   * CRITICAL:
    *
-   * Socket.IO/Engine.IO owns /socket.io.
-   * Everything else goes to Next.js.
+   * Socket.IO/Engine.IO attaches to the httpServer
+   * before we add our custom request handler.
+   * Engine.IO will intercept /socket.io* requests.
+   *
+   * We then add a request handler that routes
+   * everything EXCEPT /socket.io to Next.js.
+   *
+   * This ordering ensures Engine.IO owns the path
+   * before Next.js sees it.
    */
   httpServer.on('request', (req, res) => {
-    const pathname = req.url?.split('?')[0] || '';
+    const pathname = req.url?.split('?')[0] || '/';
 
+    /*
+     * Engine.IO handles /socket.io and /socket.io/*
+     * Socket.IO attaches itself to the server and
+     * listens for these paths automatically.
+     *
+     * We explicitly check and skip Next.js handling
+     * to let Engine.IO's internal handler process them.
+     */
     if (
       pathname === '/socket.io' ||
       pathname.startsWith('/socket.io/')
     ) {
-      // Socket.IO's Engine.IO handler handles this request.
+      // Engine.IO will handle this via the attached handler
+      // Do NOT call handle() here; let it pass through
       return;
     }
 
+    // Everything else goes to Next.js
     return handle(req, res);
   });
 
@@ -372,3 +390,4 @@ main().catch((error) => {
 
   process.exit(1);
 });
+
