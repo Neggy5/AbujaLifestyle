@@ -19,12 +19,20 @@ const citizens = new Map();
 async function main() {
   await app.prepare();
 
+  let io;
+
   const httpServer = http.createServer((req, res) => {
+    if (req.url?.startsWith('/socket.io/')) {
+      io.engine.handleRequest(req, res);
+      return;
+    }
+
     handle(req, res);
   });
 
-  const io = new Server(httpServer, {
-    transports: ['websocket', 'polling'],
+  io = new Server(httpServer, {
+    path: '/socket.io/',
+    transports: ['polling', 'websocket'],
     cors: {
       origin: true,
       credentials: true,
@@ -113,9 +121,7 @@ async function main() {
   });
 
   httpServer.listen(port, hostname, () => {
-    console.log(
-      `[abuja-live] listening on ${hostname}:${port}`
-    );
+    console.log(`[abuja-live] listening on ${hostname}:${port}`);
   });
 }
 
