@@ -57,12 +57,24 @@ export default function Home() {
   function connectCitizen(citizen: Citizen) {
     socketRef.current?.disconnect();
 
-    const socket = io({
+    const socket = io(window.location.origin, {
   path: '/socket.io/',
   transports: ['polling', 'websocket'],
   upgrade: true,
   reconnection: true,
+  autoConnect: false,
 });
+
+socket.on('connect_error', (error) => {
+  console.error(
+    '[abuja-live] connection error:',
+    error.message
+  );
+
+  setConnected(false);
+});
+
+socket.connect();
 
     socketRef.current = socket;
 
