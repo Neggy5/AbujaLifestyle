@@ -1,0 +1,12 @@
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+CREATE TABLE IF NOT EXISTS citizens (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  username VARCHAR(24) NOT NULL UNIQUE,
+  avatar VARCHAR(8) NOT NULL DEFAULT '🧑🏾',
+  district VARCHAR(32) NOT NULL DEFAULT 'Wuse',
+  wallet INTEGER NOT NULL DEFAULT 25000 CHECK (wallet >= 0),
+  job VARCHAR(80),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS citizens_district_idx ON citizens(district);
