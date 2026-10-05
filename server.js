@@ -14,7 +14,7 @@ const app = next({
 
 const handle = app.getRequestHandler();
 
-// All currently connected citizens.
+// Connected citizens.
 // Key = Socket.IO socket ID.
 const citizens = new Map();
 
@@ -23,16 +23,13 @@ async function main() {
 
   /*
    * Create the HTTP server first.
-   *
-   * Socket.IO attaches its Engine.IO handler directly
-   * to this server. Do NOT manually call
-   * io.engine.handleRequest().
+   * Socket.IO attaches its Engine.IO handler
+   * directly to this server.
    */
   const httpServer = http.createServer();
 
   const io = new Server(httpServer, {
-    path: '/socket.io'
-
+    path: '/socket.io',
     transports: ['polling', 'websocket'],
 
     cors: {
@@ -47,12 +44,19 @@ async function main() {
   });
 
   /*
-   * Next.js handles normal HTTP requests.
+   * IMPORTANT:
    *
-   * Socket.IO owns /socket.io/*.
+   * Socket.IO/Engine.IO owns /socket.io.
+   * Everything else goes to Next.js.
    */
   httpServer.on('request', (req, res) => {
-    if (req.url?.startsWith('/socket.io/')) {
+    const pathname = req.url?.split('?')[0] || '';
+
+    if (
+      pathname === '/socket.io' ||
+      pathname.startsWith('/socket.io/')
+    ) {
+      // Socket.IO's Engine.IO handler handles this request.
       return;
     }
 
@@ -60,7 +64,7 @@ async function main() {
   });
 
   /*
-   * Send the current online citizens to everybody.
+   * Broadcast current online citizens.
    */
   function broadcastPresence() {
     const list = Array.from(citizens.values());
@@ -73,7 +77,7 @@ async function main() {
   }
 
   /*
-   * New Socket.IO connection.
+   * Socket.IO connection.
    */
   io.on('connection', (socket) => {
     console.log(
@@ -84,7 +88,7 @@ async function main() {
     );
 
     /*
-     * When polling upgrades to WebSocket.
+     * Transport upgrade.
      */
     socket.conn.on('upgrade', () => {
       console.log(
@@ -162,7 +166,7 @@ async function main() {
     });
 
     /*
-     * Citizen moves around the map.
+     * Citizen moves.
      */
     socket.on('move', (payload) => {
       const citizen = citizens.get(socket.id);
@@ -258,7 +262,7 @@ async function main() {
     });
 
     /*
-     * Underlying transport closed.
+     * Underlying transport closes.
      */
     socket.conn.on('close', (reason) => {
       console.log(
@@ -270,7 +274,7 @@ async function main() {
     });
 
     /*
-     * Citizen disconnects.
+     * Socket disconnect.
      */
     socket.on('disconnect', (reason) => {
       const citizen = citizens.get(socket.id);
@@ -306,7 +310,7 @@ async function main() {
   );
 
   /*
-   * Start HTTP + Socket.IO server.
+   * Start server.
    */
   httpServer.listen(
     port,
@@ -317,7 +321,7 @@ async function main() {
       );
 
       console.log(
-        `[abuja-live] Socket.IO path: /socket.io/`
+        '[abuja-live] Socket.IO path: /socket.io'
       );
 
       console.log(
