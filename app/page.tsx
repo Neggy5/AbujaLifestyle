@@ -58,23 +58,24 @@ export default function Home() {
     socketRef.current?.disconnect();
 
     const socket = io(window.location.origin, {
-  path: '/socket.io',
-  transports: ['polling', 'websocket'],
-  upgrade: true,
-  reconnection: true,
-  autoConnect: false,
-});
+      path: '/socket.io',
+      addTrailingSlash: false,
+      transports: ['polling', 'websocket'],
+      upgrade: true,
+      reconnection: true,
+      autoConnect: false,
+    });
 
-socket.on('connect_error', (error) => {
-  console.error(
-    '[abuja-live] connection error:',
-    error.message
-  );
+    socket.on('connect_error', (error) => {
+      console.error(
+        '[abuja-live] connection error:',
+        error.message
+      );
 
-  setConnected(false);
-});
+      setConnected(false);
+    });
 
-socket.connect();
+    socket.connect();
 
     socketRef.current = socket;
 
@@ -677,3 +678,4 @@ socket.connect();
     </div>
   );
 }
+
