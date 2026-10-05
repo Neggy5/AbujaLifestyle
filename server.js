@@ -31,7 +31,7 @@ async function main() {
   const httpServer = http.createServer();
 
   const io = new Server(httpServer, {
-    path: '/socket.io/',
+    path: '/socket.io'
 
     transports: ['polling', 'websocket'],
 
