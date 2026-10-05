@@ -58,8 +58,11 @@ export default function Home() {
     socketRef.current?.disconnect();
 
     const socket = io({
-      transports: ['websocket'],
-    });
+  path: '/socket.io/',
+  transports: ['polling', 'websocket'],
+  upgrade: true,
+  reconnection: true,
+});
 
     socketRef.current = socket;
 
