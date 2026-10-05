@@ -27,34 +27,25 @@ async function main() {
    * and we'll route remaining traffic to Next.js.
    */
   const httpServer = http.createServer((req, res) => {
-    const pathname = req.url?.split('?')[0] || '/';
-
     /*
-     * CRITICAL:
+     * CRITICAL: Let Socket.IO's Engine.IO handler
+     * process /socket.io routes. Do NOT return early
+     * for /socket.io paths — Engine.IO's attached
+     * listener on the server will handle it via
+     * the 'request' event it installed.
      *
-     * If the request is for /socket.io or /socket.io/*,
-     * do NOT handle it here. Return early so that
-     * Engine.IO's attached handler (which Socket.IO
-     * installed on the server) can process it.
-     *
-     * Otherwise, route everything to Next.js.
+     * Route everything else to Next.js.
      */
-    if (
-      pathname === '/socket.io' ||
-      pathname.startsWith('/socket.io/')
-    ) {
-      // Engine.IO handler will catch this via its
-      // attached listener. Do not call handle().
-      return;
-    }
-
-    // All other requests go to Next.js
     return handle(req, res);
   });
 
   const io = new Server(httpServer, {
-    // Path without trailing slash
+    // Path without trailing slash, and explicitly
+    // disable addTrailingSlash so /socket.io?EIO=4
+    // matches exactly (not /socket.io/?EIO=4)
     path: '/socket.io',
+    addTrailingSlash: false,
+
     transports: ['polling', 'websocket'],
 
     cors: {
@@ -326,7 +317,7 @@ async function main() {
       );
 
       console.log(
-        '[abuja-live] Socket.IO path: /socket.io'
+        '[abuja-live] Socket.IO path: /socket.io (addTrailingSlash: false)'
       );
 
       console.log(
