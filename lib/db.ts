@@ -1,3 +1,5 @@
+// PostgreSQL connection helper for AbujaLifestyle.
+
 import { Pool } from 'pg';
 
 declare global { var __abjPool: Pool | undefined }
