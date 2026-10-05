@@ -1,16 +1,16 @@
 {
   "scripts": {
-  "dev": "next dev",
-  "build": "next build",
-  "start": "node server.js"
-}
+    "dev": "next dev",
+    "build": "next build",
+    "start": "node server.js"
+  },
   "dependencies": {
     "lucide-react": "latest",
     "next": "latest",
     "react": "latest",
+    "react-dom": "latest",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
-    "react-dom": "latest",
     "pg": "^8.16.3",
     "jose": "^6.1.0"
   },
